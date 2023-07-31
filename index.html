@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Polyline Decoder</title>
+    <title>Polyline Decoder | Decode Your Polylines Easily</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=geometry"></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
@@ -16,15 +16,27 @@
     <hr>
     <div id="outputSection">
         <label for="resultsJson">Results:</label><br>
-        <button class="tabButton active" id="jsonTab">JSON</button>
-        <button class="tabButton" id="textTab">Text</button>
-        <button class="tabButton" id="csvTab">CSV (Export Only)</button>
+        <div id="tabButtonsSection"> <!-- added this div to contain tab buttons -->
+            <button class="tabButton active" id="jsonTab">Json</button>
+            <button class="tabButton" id="textTab">Text</button>
+            <button class="tabButton" id="csvTab">Csv</button>
+        </div>        
         <span class="divider"></span>
         <button id="copyButton" disabled>Copy to Clipboard</button>
-        <button id="saveButton" disabled>Save to File</button>
+        <div id="saveSection">
+            <button id="saveButton" disabled>Save to File</button>
+            <div id="fileTypes" style="display: none;">
+                <input type="checkbox" id="jsonCheckbox">
+                <label for="jsonCheckbox">JSON</label>
+                <input type="checkbox" id="textCheckbox">
+                <label for="textCheckbox">Text</label>
+                <input type="checkbox" id="csvCheckbox">
+                <label for="csvCheckbox">CSV</label>
+            </div>
+        </div>
         <pre id="resultsJson" class="tab active"></pre>
         <pre id="resultsText" class="tab"></pre>
-        <pre id="resultsCSV" class="tab"></div>
+        <pre id="resultsCSV" class="tab"></pre>
     </div>
     <script>
         let latLngs;
@@ -41,11 +53,11 @@
         }
 
         function generateTable(data) {
-            let table = '<table border="1"><tr><th>Latitude</th><th>Longitude</th></tr>';
+            let table = `<table><tr><th>Latitude</th><th>Longitude</th></tr>`;
             for(let latLng of data) {
                 table += `<tr><td>${latLng.lat}</td><td>${latLng.lng}</td></tr>`;
             }
-            table += '</table>';
+            table += `</table>`;
             return table;
         }        
 
@@ -59,76 +71,83 @@
             latLngs = decodePolyline(encodedPolyline);
             document.getElementById('resultsJson').innerText = JSON.stringify(latLngs, null, 2);
             document.getElementById('resultsText').innerText = latLngs.map(latLng => `${latLng.lat}, ${latLng.lng}`).join('\n');
-            document.getElementById('resultsCSV').innerText = generateTable(latLngs);
+            document.getElementById('resultsCSV').innerHTML = generateTable(latLngs);
             document.getElementById('copyButton').disabled = false;
             document.getElementById('saveButton').disabled = false;
         }
 
         document.getElementById('saveButton').onclick = function() {
-            let dataStr;
-            let fileType;
-            let fileName;
+            if (document.getElementById('fileTypes').style.display === 'none') {
+                document.getElementById('fileTypes').style.display = 'block';
+                this.textContent = 'Save';
+            } else {
+                let fileTypes = {
+                    json: document.getElementById('jsonCheckbox').checked,
+                    text: document.getElementById('textCheckbox').checked,
+                    csv: document.getElementById('csvCheckbox').checked
+                };
 
-            if (document.getElementById('jsonTab').classList.contains('active')) {
-                dataStr = JSON.stringify(latLngs, null, 2);
-                fileType = 'application/json';
-                fileName = 'polyline-decoded.json';
-            } else if (document.getElementById('textTab').classList.contains('active')) {
-                dataStr = latLngs.map(latLng => `${latLng.lat}, ${latLng.lng}`).join('\n');
-                fileType = 'text/plain';
-                fileName = 'polyline-decoded.txt';
-            } else if (document.getElementById('csvTab').classList.contains('active')) {
-                dataStr = latLngs.map(latLng => `${latLng.lat},${latLng.lng}`).join('\n');
-                fileType = 'text/csv';
-                fileName = 'polyline-decoded.csv';
+                for (let fileType in fileTypes) {
+                    if (fileTypes[fileType]) {
+                        let dataStr, fileTypeText, fileName;
+
+                        if (fileType === 'json') {
+                            dataStr = JSON.stringify(latLngs, null, 2);
+                            fileTypeText = 'application/json';
+                            fileName = 'polyline-decoded.json';
+                        } else if (fileType === 'text') {
+                            dataStr = latLngs.map(latLng => `${latLng.lat}, ${latLng.lng}`).join('\n');
+                            fileTypeText = 'text/plain';
+                            fileName = 'polyline-decoded.txt';
+                        } else if (fileType === 'csv') {
+                            dataStr = latLngs.map(latLng => `${latLng.lat},${latLng.lng}`).join('\n');
+                            fileTypeText = 'text/csv';
+                            fileName = 'polyline-decoded.csv';
+                        }
+
+                        const data = new Blob([dataStr], {type: fileTypeText});
+                        const url = window.URL.createObjectURL(data);
+
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = fileName;
+
+                        link.click();
+
+                        window.URL.revokeObjectURL(url);
+                    }
+                }
             }
-
-            const data = new Blob([dataStr], {type: fileType});
-            const url = window.URL.createObjectURL(data);
-
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-
-            link.click();
-
-            window.URL.revokeObjectURL(url);
         }
 
         document.getElementById('clearButton').onclick = function() {
             document.getElementById('polylineInput').value = '';
             document.getElementById('resultsJson').innerText = '';
             document.getElementById('resultsText').innerText = '';
-            document.getElementById('resultsCSV').innerText = '';
+            document.getElementById('resultsCSV').innerHTML = '';
+            document.getElementById('saveButton').textContent = "Save to File";
             document.getElementById('saveButton').disabled = true;
             document.getElementById('copyButton').disabled = true;
         }
 
-        document.getElementById('jsonTab').onclick = function() {
-            switchTab('json');
-        }
-
-        document.getElementById('textTab').onclick = function() {
-            switchTab('text');
-        }
-
-        document.getElementById('csvTab').onclick = function() {
-            switchTab('csv');
-        }
-
-        function switchTab(tabName) {
-            document.getElementById('jsonTab').classList.remove('active');
-            document.getElementById('textTab').classList.remove('active');
-            document.getElementById('csvTab').classList.remove('active');
-
-            document.getElementById('resultsJson').style.display = 'none';
-            document.getElementById('resultsText').style.display = 'none';
-            document.getElementById('resultsCSV').style.display = 'none';
-
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            document.getElementById('results' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).style.display = 'block';
-        }
-
+        const tabs = document.getElementsByClassName('tab');
+        const tabButtons = document.getElementsByClassName('tabButton');
+        const resultsTabs = document.getElementById('tabButtonsSection'); // updated this line to reference new div
+        resultsTabs.onclick = function(e) {
+            const target = e.target;
+            if (target.className.includes('tabButton')) {
+                for (let i = 0; i < tabButtons.length; i++) {
+                    if (tabButtons[i] === target) {
+                        tabButtons[i].classList.add('active');
+                        tabs[i].style.display = 'block';
+                    } else {
+                        tabButtons[i].classList.remove('active');
+                        tabs[i].style.display = 'none';
+                    }
+                }
+            }
+        };
+        
         document.getElementById('copyButton').onclick = function() {
             var copyText;
             if (document.getElementById('jsonTab').classList.contains('active')) {
