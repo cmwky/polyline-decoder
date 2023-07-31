@@ -8,21 +8,21 @@
 <body>
     <h1>Polyline Decoder</h1>
     <div id="inputSection">
-        <label for="polylineInput">Enter Polyline:</label><br>
+        <label for="polylineInput">Enter Polyline</label><br>
         <textarea id="polylineInput" rows="4" placeholder="Sample polyline: ehm~FfpzuO?@GB?@GB?@GB?@GB?@"></textarea><br>
         <button id="decodeButton">Decode Polyline</button>
         <button id="clearButton">Clear</button>
     </div>
     <hr>
     <div id="outputSection">
-        <label for="resultsJson">Results:</label><br>
-        <div id="tabButtonsSection"> <!-- added this div to contain tab buttons -->
+        <label for="resultsJson">Results</label><br>
+        <div id="tabButtonsSection">
             <button class="tabButton active" id="jsonTab">Json</button>
             <button class="tabButton" id="textTab">Text</button>
             <button class="tabButton" id="csvTab">Csv</button>
+            <span class="divider"></span>
+            <button id="copyButton" disabled>Copy to Clipboard</button>
         </div>        
-        <span class="divider"></span>
-        <button id="copyButton" disabled>Copy to Clipboard</button>
         <div id="saveSection">
             <button id="saveButton" disabled>Save to File</button>
             <div id="fileTypes" style="display: none;">
@@ -77,10 +77,21 @@
         }
 
         document.getElementById('saveButton').onclick = function() {
-            if (document.getElementById('fileTypes').style.display === 'none') {
+            if (this.innerText === 'Save to File') {
+                // Determine the current active tab
+                let activeTab = document.querySelector('.tabButton.active').id;
+                // Based on the active tab, pre-check the corresponding checkbox
+                if (activeTab === 'jsonTab') {
+                    document.getElementById('jsonCheckbox').checked = true;
+                } else if (activeTab === 'textTab') {
+                    document.getElementById('textCheckbox').checked = true;
+                } else if (activeTab === 'csvTab') {
+                    document.getElementById('csvCheckbox').checked = true;
+                }
                 document.getElementById('fileTypes').style.display = 'block';
                 this.textContent = 'Save';
-            } else {
+           }
+             else {
                 let fileTypes = {
                     json: document.getElementById('jsonCheckbox').checked,
                     text: document.getElementById('textCheckbox').checked,
@@ -128,11 +139,25 @@
             document.getElementById('saveButton').textContent = "Save to File";
             document.getElementById('saveButton').disabled = true;
             document.getElementById('copyButton').disabled = true;
+            document.getElementById('fileTypes').style.display = 'none';
+
+            document.getElementById('jsonCheckbox').checked = false;
+            document.getElementById('textCheckbox').checked = false;
+            document.getElementById('csvCheckbox').checked = false;
+            
+            let activeTab = document.querySelector('.tabButton.active').id;
+            if (activeTab === 'jsonTab') {
+                document.getElementById('jsonCheckbox').checked = true;
+            } else if (activeTab === 'textTab') {
+                document.getElementById('textCheckbox').checked = true;
+            } else if (activeTab === 'csvTab') {
+                document.getElementById('csvCheckbox').checked = true;
+            }            
         }
 
         const tabs = document.getElementsByClassName('tab');
         const tabButtons = document.getElementsByClassName('tabButton');
-        const resultsTabs = document.getElementById('tabButtonsSection'); // updated this line to reference new div
+        const resultsTabs = document.getElementById('tabButtonsSection');
         resultsTabs.onclick = function(e) {
             const target = e.target;
             if (target.className.includes('tabButton')) {
@@ -140,13 +165,30 @@
                     if (tabButtons[i] === target) {
                         tabButtons[i].classList.add('active');
                         tabs[i].style.display = 'block';
+                        // Check the corresponding checkbox
+                        if(tabButtons[i].id === 'jsonTab') {
+                            document.getElementById('jsonCheckbox').checked = true;
+                        } else if(tabButtons[i].id === 'textTab') {
+                            document.getElementById('textCheckbox').checked = true;
+                        } else if(tabButtons[i].id === 'csvTab') {
+                            document.getElementById('csvCheckbox').checked = true;
+                        }
                     } else {
                         tabButtons[i].classList.remove('active');
                         tabs[i].style.display = 'none';
+                        // Uncheck the corresponding checkbox
+                        if(tabButtons[i].id === 'jsonTab') {
+                            document.getElementById('jsonCheckbox').checked = false;
+                        } else if(tabButtons[i].id === 'textTab') {
+                            document.getElementById('textCheckbox').checked = false;
+                        } else if(tabButtons[i].id === 'csvTab') {
+                            document.getElementById('csvCheckbox').checked = false;
+                        }
                     }
                 }
             }
         };
+
         
         document.getElementById('copyButton').onclick = function() {
             var copyText;
