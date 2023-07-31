@@ -107,3 +107,28 @@ pre:empty {
 #fileTypes input[type="checkbox"] {
     margin-right: 5px;
 }
+@media only screen and (max-width: 768px) {
+    /* Styles for mobile devices */
+    button {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    #saveSection {
+        flex-direction: column;
+        align-items: center;
+    }
+    #fileTypes {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    #tabButtonsSection {
+        flex-direction: column;
+        align-items: center;
+    }
+    .tabButton {
+        margin-bottom: 10px;
+    }
+}
