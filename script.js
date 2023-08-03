@@ -26,10 +26,10 @@ function generateTable(data) {
 }        
 
 document.getElementById('decodeButton').onclick = function() {
-    const encodedPolyline = document.getElementById('polylineInput').value;
+    let encodedPolyline = document.getElementById('polylineInput').value;
     if (!encodedPolyline) {
-        alert('Please enter a polyline!');
-        return;
+        encodedPolyline = "cszwFfznbMJo@F_AQyAAyAFi@Nq@Dm@^_CF}AEo@AkAa@BIBg@";
+        document.getElementById('polylineInput').value = encodedPolyline;
     }
 
     latLngs = decodePolyline(encodedPolyline);
@@ -39,6 +39,11 @@ document.getElementById('decodeButton').onclick = function() {
     document.getElementById('copyButton').disabled = false;
     document.getElementById('saveButton').disabled = false;
 }
+
+document.getElementById('polylineInput').addEventListener('input', function(){
+    if(document.getElementById('polylineInput').value.length > 0){document.getElementById('decodeButton').textContent = 'Decode Polyline';}
+    else {document.getElementById('decodeButton').textContent = 'Decode (Sample) Polyline';}
+});
 
 document.getElementById('saveButton').onclick = function() {
     if (this.innerText === 'Save to File') {
@@ -113,6 +118,7 @@ document.getElementById('clearButton').onclick = function() {
     document.getElementById('textCheckbox').checked = false;
     document.getElementById('csvCheckbox').checked = false;
     document.getElementById('unescapeCheckbox').checked = true;
+    document.getElementById('decodeButton').textContent = 'Decode (Sample) Polyline';
     
     let activeTab = document.querySelector('.tabButton.active').id;
     if (activeTab === 'jsonTab') {
